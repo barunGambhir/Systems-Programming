@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.0)
+project(server-client)
+
+set(CMAKE_C_STANDARD 11)
+
+add_executable(server src/server.c)
+target_include_directories(server PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(server)
+
+add_executable(client src/client.c)
+target_include_directories(client PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(client)

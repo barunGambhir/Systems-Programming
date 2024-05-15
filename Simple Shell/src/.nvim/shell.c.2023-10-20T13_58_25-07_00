@@ -1,0 +1,91 @@
+#include "../include/msgs.h"
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <errno.h>
+#include <signal.h>
+
+
+void handler_function(int signal){
+  if(signal == SIGINT){
+    
+  }
+}
+
+
+int main(){
+
+  signal(SIGINT, handler_function);
+  char input[256];
+  char cwd[256];
+
+  while(1){
+
+    if(getcwd(cwd, sizeof(cwd)) == NULL) {
+      write(STDERR_FILENO, FORMAT_MSG("shell", GETCWD_ERROR_MSG), strlen(FORMAT_MSG("shell", GETCWD_ERROR_MSG)));
+      exit(1);
+    }
+
+    write(STDOUT_FILENO, cwd, strlen(cwd));
+    write(STDOUT_FILENO, "$", 2);
+
+    ssize_t n = read(STDIN_FILENO, input, sizeof(input));
+
+    if(n == -1){
+      write(STDERR_FILENO, FORMAT_MSG("shell", READ_ERROR_MSG), strlen(FORMAT_MSG("shell", READ_ERROR_MSG)));
+      exit(1);
+    }
+
+    input[strlen(input) - 1] = '\0';
+
+    //handling background
+    int background = 0;
+    if(input[strlen(input) - 1] == '&'){
+      background = 1;
+      input[strlen(input) - 1] = '\0';
+    }
+
+    pid_t pid = fork();
+    
+    if(pid < 0){
+      write(STDERR_FILENO, FORMAT_MSG("shell", FORK_ERROR_MSG), strlen(FORMAT_MSG("shell", FORK_ERROR_MSG)));
+      exit(1);
+    }
+
+    else if (pid == 0){
+      char *args[32];
+      int total_arg = 0;
+      char *token = strtok(input, " ");
+      
+      while(token != NULL){
+        args[total_arg] = token;
+        token = strtok(NULL, " ");
+        total_arg++;
+      }
+      args[total_arg] = NULL;
+      
+      if(execvp(args[0], args) == -1){
+        write(STDERR_FILENO, FORMAT_MSG("shell", EXEC_ERROR_MSG), strlen(FORMAT_MSG("shell", EXEC_ERROR_MSG)));
+        //fprintf(stderr, FORMAT_MSG("shell", EXEC_ERROR_MSG));
+        exit(1);
+      }
+    }
+
+    else{
+      if (background == 0){
+        int status;
+        if(waitpid(pid, &status, 0) == -1){
+          write(STDERR_FILENO, FORMAT_MSG("shell", WAIT_ERROR_MSG), strlen(FORMAT_MSG("shell", WAIT_ERROR_MSG)));
+          exit(1);
+        }
+      }
+      else{
+        int status;
+        while(waitpid(-1, &status, WNOHANG)>0);
+      }
+    }
+  }
+}

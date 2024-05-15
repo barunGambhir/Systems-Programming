@@ -1,0 +1,42 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "../include/alloc.h"
+#include <stdint.h>
+#include <unistd.h>
+
+#define HEADER_SIZE sizeof(struct header)
+
+//header as defined in alloc.h
+/*struct header{
+  uint64_t size;
+  struct header* next;
+};*/
+
+void* alloc(int size){
+  //set size to next multiple of header size
+  int size1 = size + HEADER_SIZE - 1;
+  //set size to its respective Header size multiple
+  int size2 = size1 / HEADER_SIZE;
+  size = size2 * HEADER_SIZE;
+
+  struct header* best_fit_block = NULL;
+  struct header* prev_best_fit_block = NULL;
+  
+
+
+
+
+  return (void* );  
+}
+
+void dealloc(void* ptr){
+
+}
+
+void allocopt(enum algs algorithm, int limit){
+  
+}
+
+struct allocinfo allocinfo(void){
+
+}

@@ -1,0 +1,33 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <string.h>
+
+#define PORT 8000
+#define MAX_EVENTS 10
+#define BUF_SIZE 108
+
+typedef struct{
+  int fd;
+  uint32_t ip;
+  uint16_t port;
+} Client;
+
+void handle_error(char* msg){
+  perror(msg);
+  exit(EXIT_FAILURE);
+}
+
+int main(int argc, char *argv[]){
+  if(argc != 2){
+    handle_error("Please add one argument: max no. of clients");
+  }
+  int max_clients = atoi(argv[1]);
+  if(max_clients <= 0){
+    handle_error("max no. of clients should > 0");
+  }
+
+  int server_socket, epoll_fd;
+
+}

@@ -1,0 +1,9 @@
+#include "../include/msgs.h"
+#include <stdio.h>
+
+int main(){
+  char input[100]; 
+  while(1){
+
+  }
+}

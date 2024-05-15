@@ -1,0 +1,339 @@
+#include "alloc.h"
+#include <limits.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define HEADER_SIZE sizeof(struct header)
+
+static struct header *free_list = NULL;
+static int heap_limit = 0;
+static enum algs algo = FIRST_FIT;
+
+void *alloc(int size){
+  if(size <= 0 || size > heap_limit){
+    return NULL;
+  }
+  struct header *block = find_block(size, algo);
+}
+
+void dealloc(void *){
+  
+}
+
+void allocopt(enum algs algorithm, int limit){
+  free_list = NULL;
+  if(limit >= heap_limit){
+    //sbrk(0) return the current program break
+    //program break is where the programs head currently ends in memory
+    brk(sbrk(0) - (limit-heap_limit));
+  }
+  heap_limit = limit;
+  algo = algorithm;
+}
+
+
+struct allocinfo allocinfo(void){
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// header as defined in alloc.h
+/*struct header{
+  uint64_t size;
+  struct header* next;
+};*/
+
+/*static enum algs allocation_algo = FIRST_FIT; // setting a default value
+static int heap_limit = -1;
+
+static struct header *free_list = NULL;
+
+//split a free block into two if possible
+static void split_block(struct header *block, size_t size){
+  if(block->size > size + HEADER_SIZE){
+    struct header *new_block = (struct header *)((char *)block + size + HEADER_SIZE);
+    new_block->size = block->size - size - HEADER_SIZE;
+    new_block->next = block->next;
+    block->size = size;
+    block->next = new_block;
+  }
+}
+
+void *alloc(int size) {
+*/  // set size to next multiple of header size
+/*  if(size<=0){
+    return NULL;
+  }
+  int size1 = size + HEADER_SIZE - 1;
+  // set size to its respective Header size multiple
+  int size2 = size1 / HEADER_SIZE;
+  size = size2 * HEADER_SIZE;
+
+  struct header *current = free_list;
+  struct header *prev = NULL;
+  struct header *best_fit = NULL;
+
+  //iterate through the current free_list
+  while(current != NULL){
+
+    size_t block_size = current->size + HEADER_SIZE;
+    //this if condition is required for all algorithms
+    if(block_size >= size){
+
+      //the first block that satisfies
+      if(allocation_algo == FIRST_FIT){
+        best_fit = current;
+        break;
+      }
+
+      else if(allocation_algo == BEST_FIT){
+        //smallest remainder fragment
+        if(best_fit == NULL || block_size < (best_fit->size + HEADER_SIZE)){
+          best_fit = current;
+        }
+      }
+
+      else if(allocation_algo == WORST_FIT){
+        //largest remainder fragment
+        if(best_fit == NULL || block_size > (best_fit->size + HEADER_SIZE)){
+          best_fit = current;
+        }
+      }
+    }
+    prev = current;
+    current = current->next;
+  }
+
+  //found a space in memory
+  if(best_fit != NULL){
+    size_t block_size = best_fit->size;
+    if(block_size >= size + HEADER_SIZE){
+      split_block(best_fit, size + HEADER_SIZE);
+    }
+
+    if(prev != NULL){
+      prev->next = best_fit->next;
+    }
+    else{
+      free_list = best_fit->next;
+    }
+
+    return (void *)(best_fit+1);
+  }
+
+  //no space in memory is found -- increase the heap
+  else{
+    if(heap_limit == -1 || sbrk(INCREMENT) != (void *)-1){
+      struct header *new_block = sbrk(0);
+      new_block->size = INCREMENT - HEADER_SIZE;
+      new_block->next = NULL;
+      split_block(new_block, size + HEADER_SIZE);
+      return (void *)(new_block+1);
+    }
+    else{
+      return NULL;
+    }
+  }
+  return NULL;
+*/
+ /* size = (size + HEADER_SIZE - 1) / HEADER_SIZE * HEADER_SIZE;
+  struct header *best_fit_block = NULL;
+  struct header *prev_best_fit_block = NULL;
+  struct header* prev = NULL;
+
+  if (allocation_algo == BEST_FIT || allocation_algo == WORST_FIT) {
+    int best_diff = INT_MAX;
+    for (struct header *curr = free_list; curr; curr = curr->next) {
+      if (curr->size >= size) {
+        int diff = curr->size - size;
+
+        if (allocation_algo == BEST_FIT && diff < best_diff) {
+          best_fit_block = curr;
+          prev_best_fit_block = prev;
+          best_diff = diff;
+        } else if (allocation_algo == WORST_FIT && diff > best_diff) {
+          best_fit_block = curr;
+          prev_best_fit_block = prev;
+          best_diff = diff;
+        }
+      }
+      prev = curr;
+    }
+    if (best_fit_block) {
+      if (best_diff > size + HEADER_SIZE) {
+        struct header *new_block =
+            (struct header *)((char *)best_fit_block + size + HEADER_SIZE);
+        new_block->size = best_fit_block->size - size - HEADER_SIZE;
+        new_block->next = best_fit_block->next;
+        if (prev_best_fit_block) {
+          prev_best_fit_block->next = new_block;
+        } 
+        else {
+          free_list = new_block;
+        }
+      }
+  */    /*else{
+        if(prev_best_fit_block){
+          prev_best_fit_block->next = best_fit_block->next;
+        }
+        else{
+          free_list = best_fit_block->next;
+        }
+      }*/
+   /*   best_fit_block->size = size + HEADER_SIZE;
+      //best_fit_block->next = NULL;
+      return (void *)(best_fit_block + 1);
+    }
+  }
+
+  // First fit starts here
+  else {
+    for (struct header *curr = free_list, *prev = NULL; curr;
+         prev = curr, curr = curr->next) {
+      if (curr->size >= size) {
+        if (prev) {
+          prev->next = curr->next;
+        } else {
+          free_list = curr->next;
+        }
+        if (curr->size > size + HEADER_SIZE) {
+          struct header *new_block = (struct header *)((char *)curr + size);
+          new_block->size = curr->size - size;
+          new_block->next = curr->next;
+          curr->size = size;
+          curr->next = NULL;
+          if (prev) {
+            prev->next = new_block;
+          } else {
+            free_list = new_block;
+          }
+        }
+        return (void *)(curr + 1);
+      }
+    }
+  }
+
+  if (heap_limit == -1 || sbrk(0) < sbrk(0) + size + HEADER_SIZE + INCREMENT) {
+    if (heap_limit == -1 || sbrk(0) == (void*)-1 || sbrk(0) < (void*)heap_limit) {
+      int increment = INCREMENT;
+      if (heap_limit != -1 && sbrk(0) != (void*)-1 && sbrk(0) + increment > (void*)heap_limit) {
+        increment = (int)((void*)heap_limit - sbrk(0));
+      }
+      if (sbrk(increment) == (void *)-1) {
+        return NULL;
+      }
+    } else {
+      return NULL;
+    }
+  }
+
+  struct header *new_block = (struct header *)sbrk(0);
+  new_block->size = size;
+  new_block->next = NULL;
+  if (!free_list) {
+    free_list = new_block;
+  } else {
+    struct header *curr = free_list;
+    while (curr->next) {
+      curr = curr->next;
+    }
+    curr->next = new_block;
+  }
+  return (void *)(new_block + 1);
+
+  
+}
+
+void dealloc(void *ptr) {
+  if (ptr == NULL) {
+    return;
+  }
+  struct header *block = (struct header *)ptr - 1;
+  block->next = free_list;
+  free_list = block;
+
+  struct header *curr = free_list;
+  struct header *prev = NULL;
+
+  while (curr != NULL) {
+    if (prev && (char *)prev + prev->size == (char *)curr) {
+      prev->size += curr->size;
+      prev->next = curr->next;
+    } else {
+      prev = curr;
+    }
+    curr = curr->next;
+    //prev = curr;
+    //curr = curr->next;
+  }*/
+  /*if(prev == NULL){
+    block->next = free_list;
+    free_list = block;
+  }
+  else{
+    block->next = curr;
+    prev->next = block;
+    if((char *)block + block->size + HEADER_SIZE == (char *)block->next){
+      block->size += block->next->size + HEADER_SIZE;
+      block->next = block->next->next;
+    }
+  }*/
+/*}
+
+void allocopt(enum algs algorithm, int limit) {
+  allocation_algo = algorithm;
+  heap_limit = limit;
+  //free_list = sbrk(0);
+  sbrk(0); 
+  *//*if(sbrk(INCREMENT) == (void *)-1){
+    exit(1);
+  }
+  free_list->size = INCREMENT - HEADER_SIZE;
+  *//*free_list = NULL;
+}
+
+struct allocinfo allocinfo(void) {
+  struct allocinfo info;
+  info.free_size = 0;
+  info.free_chunks = 0;
+  info.largest_free_chunk_size = 0;
+  info.smallest_free_chunk_size = INT_MAX;
+
+  for (struct header *curr = free_list; curr; curr = curr->next) {
+    info.free_size += curr->size;
+    info.free_chunks++;
+    if (curr->size > info.largest_free_chunk_size) {
+      info.largest_free_chunk_size = curr->size;
+    }
+    if (curr->size < info.smallest_free_chunk_size) {
+      info.smallest_free_chunk_size = curr->size;
+    }
+  }
+  return info;
+}*/

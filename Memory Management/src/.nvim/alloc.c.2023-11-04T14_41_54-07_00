@@ -1,0 +1,94 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "../include/alloc.h"
+#include <stdint.h>
+#include <unistd.h>
+#include <limits.h>
+#define HEADER_SIZE sizeof(struct header)
+
+//header as defined in alloc.h
+/*struct header{
+  uint64_t size;
+  struct header* next;
+};*/
+
+static enum algs allocation_algo = FIRST_FIT; // setting a default value
+static int heap_limit = -1;
+
+static struct header* free_list = NULL;
+
+void* alloc(int size){
+  //set size to next multiple of header size
+  int size1 = size + HEADER_SIZE - 1;
+  //set size to its respective Header size multiple
+  int size2 = size1 / HEADER_SIZE;
+  size = size2 * HEADER_SIZE;
+
+  struct header* best_fit_block = NULL;
+  struct header* prev_best_fit_block = NULL;
+  struct header* prev = NULL;
+
+  if(allocation_algo == BEST_FIT || allocation_algo == WORST_FIT){
+    int best_diff = INT_MAX;
+    for(struct header* curr = free_list; curr; curr = curr->next){
+      if(curr->size >= size){
+        int diff = curr->size - size;
+
+        if(allocation_algo == BEST_FIT && diff < best_diff){
+          best_fit_block = curr;
+          prev_best_fit_block = prev;
+          best_diff = diff;
+        }
+        else if (allocation_algo == WORST_FIT && diff > best_diff){
+          best_fit_block = curr;
+          prev_best_fit_block = prev;
+          best_diff = diff;
+        }
+      }
+      prev = curr;
+    }
+    if(best_fit_block){
+      if(best_diff > size + HEADER_SIZE){
+        struct header* new_block = (struct header*)((char*)best_fit_block + size);
+        new_block->size = best_fit_block->size - size;
+        new_block->next = best_fit_block->next;
+        if(prev_best_fit_block){
+          prev_best_fit_block->next = new_block;
+        }
+        else{
+          free_list = new_block;
+        }
+      }
+      best_fit_block->size = size;
+      return (void*) (best_fit_block + 1);
+    }
+  }
+
+  //First fit starts here
+  else{
+
+  }
+
+
+
+
+  return (void* );  
+}
+
+void dealloc(void* ptr){
+  if(!ptr){
+    return;
+  }
+
+}
+
+void allocopt(enum algs algorithm, int limit){
+  allocation_algo = algorithm;
+  heap_limit = limit;
+  sbrk(0);
+  free_list = NULL;
+}
+
+struct allocinfo allocinfo(void){
+
+}

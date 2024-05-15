@@ -1,0 +1,24 @@
+#include "../include/bbuff.h"
+#include <pthread.h>
+#include <semaphore.h>
+
+//#define BUFFER_SIZE 10
+
+static sem_t empty_slots
+static sem_t full_slots
+
+void bbuff_init(void){
+  int sem = sem_init()
+}
+
+void bbuff_blocking_insert(void* item){
+
+}
+
+void *bbuff_blocking_extract(void){
+
+}
+
+bool bbuff_is_empty(void){
+  
+}
